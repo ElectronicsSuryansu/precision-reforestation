@@ -11,63 +11,53 @@ export default function Insight() {
 
   useEffect(() => {
     let mounted = true;
-
-    async function load() {
-      try {
-        setLoading(true);
-        const response = await analyzePatch(location.lat, location.lng);
-        if (mounted) {
-          setAnalysis(response.data);
-        }
-      } catch (requestError) {
-        if (mounted) {
-          setError(requestError?.response?.data?.detail || requestError.message || "Unable to fetch AI insight.");
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    load();
-    return () => {
-      mounted = false;
-    };
+    analyzePatch(location.lat, location.lng)
+      .then((r) => { if (mounted) setAnalysis(r.data); })
+      .catch((e) => { if (mounted) setError(e?.response?.data?.detail || e.message); })
+      .finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
   }, [location.lat, location.lng]);
 
   return (
     <PageShell
       title="Insight"
       subtitle="Claude-generated restoration summary for the selected land patch."
-      loading={loading}
-      error={error}
-      action={<div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">AI narrative</div>}
+      loading={loading} error={error}
+      action={
+        <span style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #86efac", borderRadius: 100, padding: "6px 14px", fontSize: "0.8rem", fontWeight: 600 }}>
+          AI Narrative
+        </span>
+      }
     >
-      <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="rounded-[24px] border border-white/8 bg-black/20 p-5">
-          <div className="text-sm uppercase tracking-[0.24em] text-slate-500">AI Insight</div>
-          <p className="mt-4 text-lg leading-8 text-slate-100">
+      <style>{`
+        .insight-grid { display: grid; gap: 16px; grid-template-columns: 1.15fr 0.85fr; }
+        .icard { background: white; border: 1px solid #dcfce7; border-radius: 24px; padding: 24px; }
+        .icard-label { font-size: 0.7rem; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+        .icard-title { font-size: 1rem; font-weight: 600; color: #052e16; margin-bottom: 14px; }
+        .istat { background: #f0fdf4; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+        .istat-label { font-size: 0.7rem; color: #16a34a; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+        .istat-value { font-size: 1.3rem; font-weight: 600; color: #052e16; margin-top: 2px; }
+        @media (max-width: 768px) { .insight-grid { grid-template-columns: 1fr; } }
+      `}</style>
+      <div className="insight-grid">
+        <div className="icard">
+          <div className="icard-label">AI Insight</div>
+          <p style={{ fontSize: "1.1rem", lineHeight: 1.8, color: "#052e16" }}>
             {analysis?.insight ?? "No insight available yet."}
           </p>
         </div>
-
-        <div className="rounded-[24px] border border-white/8 bg-white/5 p-5">
-          <div className="font-semibold text-white">Context</div>
-          <div className="mt-4 space-y-3 text-sm leading-6 text-slate-300">
-            <div className="rounded-2xl bg-black/20 p-4">
-              <div className="text-xs text-slate-500">Elevation</div>
-              <div className="mt-1 text-lg font-semibold text-white">{analysis?.environment?.elevation?.elevation?.toFixed(0) ?? "—"} m</div>
+        <div className="icard">
+          <div className="icard-title">Context</div>
+          {[
+            { label: "Elevation", value: `${analysis?.environment?.elevation?.elevation?.toFixed(0) ?? "—"} m` },
+            { label: "Slope", value: `${analysis?.environment?.slope?.toFixed(1) ?? "—"}°` },
+            { label: "NDVI", value: analysis?.environment?.ndvi?.toFixed(3) ?? "—" },
+          ].map(({ label, value }) => (
+            <div className="istat" key={label}>
+              <div className="istat-label">{label}</div>
+              <div className="istat-value">{value}</div>
             </div>
-            <div className="rounded-2xl bg-black/20 p-4">
-              <div className="text-xs text-slate-500">Slope</div>
-              <div className="mt-1 text-lg font-semibold text-white">{analysis?.environment?.slope?.toFixed(1) ?? "—"}°</div>
-            </div>
-            <div className="rounded-2xl bg-black/20 p-4">
-              <div className="text-xs text-slate-500">NDVI</div>
-              <div className="mt-1 text-lg font-semibold text-white">{analysis?.environment?.ndvi?.toFixed(3) ?? "—"}</div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </PageShell>
