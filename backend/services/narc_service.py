@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import re
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, List, Optional
 
 import httpx
 from fastapi import HTTPException
@@ -10,133 +11,194 @@ from fastapi import HTTPException
 from backend.config.settings import get_settings
 from backend.models.schemas import ElevationData, SoilData
 
+logger = logging.getLogger(__name__)
 
-def _extract_numeric(value: Any) -> Optional[float]:
-    if isinstance(value, (int, float)):
-        return float(value)
-    if isinstance(value, str):
-        match = re.search(r"-?\d+(?:\.\d+)?", value.replace(",", ""))
-        if match:
-            return float(match.group(0))
-        return None
-    if isinstance(value, dict):
-        for key in ("value", "mean", "val", "median", "ph", "organic_matter", "total_nitrogen", "clay", "elevation"):
-            candidate = value.get(key)
-            if candidate is not None:
-                extracted = _extract_numeric(candidate)
-                if extracted is not None:
-                    return extracted
-        for nested in value.values():
-            extracted = _extract_numeric(nested)
-            if extracted is not None:
-                return extracted
-    if isinstance(value, list):
-        for item in value:
-            extracted = _extract_numeric(item)
-            if extracted is not None:
-                return extracted
+
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
+
+def _parse_numeric(raw: Any) -> Optional[float]:
+    """Extract the first number from a value that may be a float, int, or
+    string like '6.58 ' or '19.28 %'."""
+    if isinstance(raw, (int, float)):
+        return float(raw)
+    if isinstance(raw, str):
+        match = re.search(r"-?\d+(?:\.\d+)?", raw.replace(",", ""))
+        return float(match.group(0)) if match else None
     return None
 
 
-def _normalize_payload_key(payload: Dict[str, Any], candidates: Iterable[str]) -> Any:
-    lowered = {str(key).lower(): value for key, value in payload.items()}
-    for candidate in candidates:
-        candidate_key = candidate.lower()
-        if candidate_key in lowered:
-            return lowered[candidate_key]
-    return None
+# ---------------------------------------------------------------------------
+# Raw API fetch
+# ---------------------------------------------------------------------------
 
+async def _fetch_raw(lat: float, lng: float) -> Dict[str, Any]:
+    """Hit the NARC soil API and return the parsed JSON dict.
 
-async def fetch_narc_profile(lat: float, lng: float) -> Dict[str, Any]:
+    Raises HTTPException on any network / HTTP error so callers do not need
+    to handle httpx exceptions themselves.
+    """
     settings = get_settings()
-    timeout = httpx.Timeout(settings.api_timeout_seconds)
+    params = {"lat": lat, "lon": lng}
+
+    logger.debug("NARC request: %s params=%s", settings.narc_soil_api_url, params)
+
     try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            response = await client.get(settings.narc_soil_api_url, params={"lat": lat, "lon": lng})
+        async with httpx.AsyncClient(timeout=settings.api_timeout_seconds) as client:
+            response = await client.get(settings.narc_soil_api_url, params=params)
             response.raise_for_status()
             payload = response.json()
-            if isinstance(payload, list):
-                payload = next((item for item in payload if isinstance(item, dict)), None)
-            elif isinstance(payload, dict) and isinstance(payload.get("results"), list):
-                payload = next((item for item in payload["results"] if isinstance(item, dict)), None)
-            if not isinstance(payload, dict):
-                raise ValueError("Unexpected NARC response shape")
-            return payload
+
     except asyncio.CancelledError as exc:
-        raise HTTPException(status_code=504, detail="NARC request cancelled or timed out") from exc
-    except httpx.TimeoutException as exc:
         raise HTTPException(status_code=504, detail="NARC request timed out") from exc
+
+    except httpx.TimeoutException as exc:
+        raise HTTPException(
+            status_code=504,
+            detail=f"NARC API timed out after {settings.api_timeout_seconds}s",
+        ) from exc
+
     except httpx.HTTPStatusError as exc:
-        raise HTTPException(status_code=502, detail=f"NARC API returned {exc.response.status_code}") from exc
+        raise HTTPException(
+            status_code=502,
+            detail=f"NARC API returned HTTP {exc.response.status_code}",
+        ) from exc
+
     except httpx.RequestError as exc:
-        raise HTTPException(status_code=502, detail="Unable to reach NARC API") from exc
+        raise HTTPException(
+            status_code=502,
+            detail=f"Could not reach NARC API: {exc}",
+        ) from exc
 
+    # Unwrap list wrapper if the API ever returns [{...}] instead of {...}
+    if isinstance(payload, list):
+        payload = next((item for item in payload if isinstance(item, dict)), None)
 
-def _first_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
-    if isinstance(payload, dict) and isinstance(payload.get("results"), list):
-        first_item = next((item for item in payload["results"] if isinstance(item, dict)), None)
-        if first_item is not None:
-            return first_item
+    if not isinstance(payload, dict):
+        raise HTTPException(
+            status_code=502,
+            detail="NARC API returned an unexpected response shape",
+        )
+
+    logger.debug("NARC response keys: %s", list(payload.keys()))
     return payload
 
 
-def _soil_from_profile(payload: Dict[str, Any], lat: float, lng: float) -> SoilData:
-    payload = _first_payload(payload)
-    ph = _extract_numeric(_normalize_payload_key(payload, ("ph", "phh2o", "Ph")))
-    organic_matter = _extract_numeric(_normalize_payload_key(payload, ("organic_matter", "organic matter", "Organic_matter")))
-    nitrogen = _extract_numeric(_normalize_payload_key(payload, ("total_nitrogen", "nitrogen", "Total_nitrogen")))
-    clay = _extract_numeric(_normalize_payload_key(payload, ("clay", "Clay")))
-    if None in (ph, organic_matter, nitrogen, clay):
-        raise ValueError("Incomplete NARC soil payload")
+# ---------------------------------------------------------------------------
+# Domain parsers
+# ---------------------------------------------------------------------------
+
+def _parse_soil(payload: Dict[str, Any], lat: float, lng: float) -> SoilData:
+    """Build a SoilData from a raw NARC payload dict."""
+    ph             = _parse_numeric(payload.get("ph"))
+    organic_matter = _parse_numeric(payload.get("organic_matter"))
+    nitrogen       = _parse_numeric(payload.get("total_nitrogen"))
+    clay           = _parse_numeric(payload.get("clay"))
+
+    missing = [
+        name for name, val in {
+            "ph": ph,
+            "organic_matter": organic_matter,
+            "total_nitrogen": nitrogen,
+            "clay": clay,
+        }.items()
+        if val is None
+    ]
+    if missing:
+        raise HTTPException(
+            status_code=502,
+            detail=f"NARC payload missing required soil fields: {missing}",
+        )
+
     return SoilData(
-        ph=round(float(ph), 2),
-        nitrogen=round(float(nitrogen), 3),
-        clay=round(float(clay), 2),
-        organic_matter=round(float(organic_matter), 2),
+        ph=round(ph, 2),
+        nitrogen=round(nitrogen, 3),
+        clay=round(clay, 2),
+        organic_matter=round(organic_matter, 2),
         source="narc",
     )
 
 
-def _elevation_from_profile(payload: Dict[str, Any], lat: float, lng: float) -> ElevationData:
-    payload = _first_payload(payload)
-    coord = payload.get("coord") or {}
-    elevation = _extract_numeric(coord.get("elevation"))
-    if elevation is None:
-        raise ValueError("NARC elevation missing from payload")
-    return ElevationData(elevation=round(float(elevation), 2), source="narc")
+def _parse_elevation(payload: Dict[str, Any], lat: float, lng: float) -> ElevationData:
+    """Build an ElevationData from a raw NARC payload dict."""
+    coord = payload.get("coord")
+    if not isinstance(coord, dict):
+        raise HTTPException(
+            status_code=502,
+            detail="NARC payload missing 'coord' block for elevation",
+        )
 
+    elevation = _parse_numeric(coord.get("elevation"))
+    if elevation is None:
+        raise HTTPException(
+            status_code=502,
+            detail="NARC payload missing elevation value inside 'coord'",
+        )
+
+    return ElevationData(elevation=round(elevation, 2), source="narc")
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
 async def fetch_narc_soil(lat: float, lng: float) -> SoilData:
-    payload = await fetch_narc_profile(lat, lng)
-    return _soil_from_profile(payload, lat, lng)
+    payload = await _fetch_raw(lat, lng)
+    return _parse_soil(payload, lat, lng)
 
 
 async def fetch_narc_elevation(lat: float, lng: float) -> ElevationData:
-    payload = await fetch_narc_profile(lat, lng)
-    return _elevation_from_profile(payload, lat, lng)
+    payload = await _fetch_raw(lat, lng)
+    return _parse_elevation(payload, lat, lng)
 
 
-async def fetch_narc_neighbor_elevations(lat: float, lng: float, step_degrees: float = 0.01) -> List[Optional[float]]:
-    offsets = (
-        (lat + step_degrees, lng),
-        (lat - step_degrees, lng),
-        (lat, lng + step_degrees),
-        (lat, lng - step_degrees),
-    )
-    probe_steps = (step_degrees, step_degrees / 2.0, step_degrees / 4.0, step_degrees / 8.0)
+async def fetch_narc_profile(lat: float, lng: float) -> Dict[str, Any]:
+    """Return the full raw NARC payload (used by routers that need both
+    soil and elevation in one call)."""
+    return await _fetch_raw(lat, lng)
+
+
+async def fetch_narc_neighbor_elevations(
+    lat: float,
+    lng: float,
+    step_degrees: float = 0.01,
+) -> List[Optional[float]]:
+    """Sample elevations at the four cardinal neighbours of (lat, lng).
+
+    Falls back to progressively closer probe points if a neighbour fails,
+    and returns None for that direction if all probes fail.
+    """
+    offsets = [
+        (lat + step_degrees, lng),   # north
+        (lat - step_degrees, lng),   # south
+        (lat, lng + step_degrees),   # east
+        (lat, lng - step_degrees),   # west
+    ]
+    probe_fractions = (1.0, 0.5, 0.25, 0.125)
     values: List[Optional[float]] = []
 
-    for sample_lat, sample_lng in offsets:
-        sample_elevation: Optional[float] = None
-        for probe_step in probe_steps:
-            probe_lat = lat + (sample_lat - lat) * (probe_step / step_degrees)
-            probe_lng = lng + (sample_lng - lng) * (probe_step / step_degrees)
+    for target_lat, target_lng in offsets:
+        sample: Optional[float] = None
+        dlat = target_lat - lat
+        dlng = target_lng - lng
+
+        for fraction in probe_fractions:
+            probe_lat = lat + dlat * fraction
+            probe_lng = lng + dlng * fraction
             try:
-                elevation = await fetch_narc_elevation(probe_lat, probe_lng)
-                sample_elevation = elevation.elevation
+                elev = await fetch_narc_elevation(probe_lat, probe_lng)
+                sample = elev.elevation
                 break
-            except Exception as exc:
+            except HTTPException:
                 continue
-        values.append(sample_elevation)
+            except Exception as exc:
+                logger.warning(
+                    "Unexpected error probing elevation at (%.6f, %.6f): %s",
+                    probe_lat, probe_lng, exc,
+                )
+                continue
+
+        values.append(sample)
 
     return values
