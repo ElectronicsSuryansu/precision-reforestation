@@ -1,14 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import MapView from "../components/MapView.jsx";
 import SidePanel from "../components/SidePanel.jsx";
 import { analyzePatch, getEnvironment } from "../services/api.js";
-import {
-  getStoredLocation,
-  saveStoredAnalysis,
-  saveStoredLocation,
-} from "../services/location.js";
+import { getStoredLocation, saveStoredAnalysis, saveStoredLocation } from "../services/location.js";
 
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export default function Dashboard() {
   const [location, setLocation] = useState(() => getStoredLocation());
@@ -19,147 +16,196 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [stage, setStage] = useState("Fetching soil data...");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     setLatInput(String(location.lat));
     setLngInput(String(location.lng));
   }, [location.lat, location.lng]);
 
-  const runAnalysis = async (nextLocation = location) => {
-    const resolvedLocation = nextLocation || location;
-    setLocation(resolvedLocation);
-    saveStoredLocation(resolvedLocation);
+  const runAnalysis = useCallback(async (nextLocation = location) => {
+    const loc = nextLocation || location;
+    setLocation(loc);
+    saveStoredLocation(loc);
     setLoading(true);
     setError("");
-
     try {
       setStage("Fetching soil data...");
-      const environmentResponse = await getEnvironment(resolvedLocation.lat, resolvedLocation.lng);
-      setEnvironment(environmentResponse.data);
-
-      await delay(180);
+      const envRes = await getEnvironment(loc.lat, loc.lng);
+      setEnvironment(envRes.data);
+      await delay(150);
       setStage("Analyzing terrain...");
-
-      await delay(180);
+      await delay(150);
       setStage("Generating AI insights...");
-      const analysisResponse = await analyzePatch(resolvedLocation.lat, resolvedLocation.lng);
-      setAnalysis(analysisResponse.data);
-      saveStoredAnalysis(analysisResponse.data);
-    } catch (requestError) {
-      setError(requestError?.response?.data?.detail || requestError.message || "Unable to analyze the selected area.");
+      const anaRes = await analyzePatch(loc.lat, loc.lng);
+      setAnalysis(anaRes.data);
+      saveStoredAnalysis(anaRes.data);
+    } catch (e) {
+      setError(e?.response?.data?.detail || e.message || "Unable to analyze the selected area.");
     } finally {
       setLoading(false);
     }
+  }, [location]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const lat = parseFloat(latInput);
+    const lng = parseFloat(lngInput);
+    if (!isFinite(lat) || !isFinite(lng)) { setError("Enter valid lat/lng values."); return; }
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) { setError("Coordinates out of range."); return; }
+    await runAnalysis({ lat, lng });
   };
 
-  const handleCoordinateSubmit = async (event) => {
-    event.preventDefault();
-    const nextLat = Number.parseFloat(latInput);
-    const nextLng = Number.parseFloat(lngInput);
-
-    if (!Number.isFinite(nextLat) || !Number.isFinite(nextLng)) {
-      setError("Enter valid latitude and longitude values.");
-      return;
-    }
-
-    if (nextLat < -90 || nextLat > 90 || nextLng < -180 || nextLng > 180) {
-      setError("Latitude must be between -90 and 90, and longitude between -180 and 180.");
-      return;
-    }
-
-    await runAnalysis({ lat: nextLat, lng: nextLng });
-  };
-
-  useEffect(() => {
-    runAnalysis(location);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => { runAnalysis(location); }, []); // eslint-disable-line
 
   const handleExport = () => {
-    const payload = {
-      location,
-      environment,
-      analysis,
-      exportedAt: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ location, environment, analysis, exportedAt: new Date().toISOString() }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `nepal-restoration-report-${location.lat.toFixed(3)}-${location.lng.toFixed(3)}.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    const a = document.createElement("a");
+    a.href = url; a.download = `restoration-${location.lat.toFixed(3)}-${location.lng.toFixed(3)}.json`;
+    a.click(); URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(380px,0.9fr)]">
-      <div className="space-y-5">
-        <div className="glass-panel rounded-[28px] border border-white/10 p-5 md:p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap');
+        .dash-root { font-family: 'DM Sans', sans-serif; min-height: 100vh; background: #f0fdf4; }
+        .dash-header {
+          background: white; border-bottom: 1px solid #dcfce7;
+          padding: 20px 32px;
+          display: flex; flex-direction: column; gap: 16px;
+        }
+        .dash-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+        .dash-right-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+        .dash-home-btn {
+          background: white;
+          color: #166534;
+          border: 1px solid #16a34a;
+          border-radius: 999px;
+          padding: 10px 18px;
+          font-size: 0.9rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+        }
+        .dash-home-btn:hover { background: #16a34a; color: white; transform: translateY(-1px); }
+        .dash-badge {
+          display: inline-flex; align-items: center; gap: 6px;
+          background: #dcfce7; border: 1px solid #86efac;
+          border-radius: 100px; padding: 4px 12px;
+          font-size: 0.7rem; font-weight: 700; color: #15803d;
+          letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px;
+        }
+        .dash-badge-dot { width: 5px; height: 5px; border-radius: 50%; background: #22c55e; animation: pulse2 2s infinite; }
+        .dash-title {
+          font-family: 'Playfair Display', serif;
+          font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; color: #052e16;
+        }
+        .dash-subtitle { font-size: 0.875rem; color: #4b7a59; margin-top: 4px; }
+        .coord-badge {
+          background: #f0fdf4; border: 1px solid #bbf7d0;
+          border-radius: 16px; padding: 12px 16px; text-align: right; flex-shrink: 0;
+        }
+        .coord-badge-label { display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #16a34a;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px; }
+        .coord-badge-value { font-size: 1rem; font-weight: 600; color: #052e16; margin-top: 2px; }
+        .dash-form {
+          display: grid; gap: 12px;
+          grid-template-columns: 1fr 1fr auto;
+          background: #f0fdf4; border: 1px solid #bbf7d0;
+          border-radius: 20px; padding: 16px;
+        }
+        .form-field label { display: block; font-size: 0.7rem; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+        .form-input {
+          width: 100%; background: white; border: 1px solid #dcfce7;
+          border-radius: 12px; padding: 10px 14px; font-size: 0.9rem; color: #052e16;
+          outline: none; transition: border-color 0.2s;
+          font-family: 'DM Sans', sans-serif;
+        }
+        .form-input:focus { border-color: #16a34a; }
+        .form-submit {
+          align-self: end;
+          background: #16a34a; color: white; border: none;
+          border-radius: 12px; padding: 11px 24px;
+          font-size: 0.875rem; font-weight: 600;
+          cursor: pointer; transition: background 0.2s, transform 0.15s;
+          white-space: nowrap; font-family: 'DM Sans', sans-serif;
+        }
+        .form-submit:hover { background: #15803d; transform: translateY(-1px); }
+        .dash-error {
+          background: #fef2f2; border: 1px solid #fecaca;
+          border-radius: 12px; padding: 12px 16px;
+          font-size: 0.875rem; color: #dc2626;
+        }
+        .dash-body {
+          display: grid; gap: 20px; padding: 20px 32px;
+          grid-template-columns: minmax(0, 1.7fr) minmax(340px, 0.9fr);
+        }
+        @keyframes pulse2 { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }
+        @media (max-width: 900px) {
+          .dash-body { grid-template-columns: 1fr; padding: 16px; }
+          .dash-header { padding: 16px; }
+          .dash-form { grid-template-columns: 1fr 1fr; }
+          .form-submit { grid-column: span 2; }
+        }
+        @media (max-width: 600px) {
+          .dash-form { grid-template-columns: 1fr; }
+          .form-submit { grid-column: 1; }
+        }
+      `}</style>
+
+      <div className="dash-root">
+        <div className="dash-header">
+          <div className="dash-title-row">
             <div>
-              <div className="inline-flex rounded-full border border-forest-400/20 bg-forest-400/10 px-3 py-1 text-xs uppercase tracking-[0.28em] text-forest-200">
-                Kathmandu-first restoration demo
-              </div>
-              <h1 className="mt-4 font-display text-4xl font-bold text-white md:text-5xl">
-                AI-Powered Ecological Restoration Intelligence Platform
-              </h1>
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400 md:text-base">
-                Enter latitude and longitude, or click any point in Nepal, to pull soil and elevation data, estimate terrain exposure, and ask Claude for restoration guidance.
-              </p>
+              <div className="dash-badge"><div className="dash-badge-dot" /> Live Analysis</div>
+              <h1 className="dash-title">Restoration Intelligence Dashboard</h1>
+              <p className="dash-subtitle">Click the map or enter coordinates to analyze any Nepal site.</p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
-              <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Selected Coordinate</div>
-              <div className="mt-1 font-semibold text-white">
-                {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
+            <div className="dash-right-actions">
+              <button className="dash-home-btn" type="button" onClick={() => navigate("/home")}>Home</button>
+              <div className="coord-badge">
+                <div className="coord-badge-label">Selected Point</div>
+                <div className="coord-badge-value">{location.lat.toFixed(4)}, {location.lng.toFixed(4)}</div>
               </div>
             </div>
           </div>
 
-          <form onSubmit={handleCoordinateSubmit} className="mt-5 grid gap-3 rounded-3xl border border-white/8 bg-black/15 p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end">
-            <label className="block">
-              <span className="mb-2 block text-xs uppercase tracking-[0.24em] text-slate-500">Latitude</span>
-              <input
-                type="number"
-                step="any"
-                value={latInput}
-                onChange={(event) => setLatInput(event.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-forest-400/50"
-                placeholder="27.7172"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-2 block text-xs uppercase tracking-[0.24em] text-slate-500">Longitude</span>
-              <input
-                type="number"
-                step="any"
-                value={lngInput}
-                onChange={(event) => setLngInput(event.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-forest-400/50"
-                placeholder="85.3240"
-              />
-            </label>
-            <button
-              type="submit"
-              className="rounded-2xl bg-forest-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-forest-400"
-            >
-              Use Coordinates
-            </button>
+          <form className="dash-form" onSubmit={handleSubmit}>
+            <div className="form-field">
+              <label>Latitude</label>
+              <input className="form-input" type="number" step="any" value={latInput} onChange={(e) => setLatInput(e.target.value)} placeholder="27.7172" />
+            </div>
+            <div className="form-field">
+              <label>Longitude</label>
+              <input className="form-input" type="number" step="any" value={lngInput} onChange={(e) => setLngInput(e.target.value)} placeholder="85.3240" />
+            </div>
+            <button className="form-submit" type="submit">Analyze →</button>
           </form>
+
+          {error && <div className="dash-error">⚠ {error}</div>}
         </div>
 
-        <MapView location={location} onSelect={runAnalysis} />
+        <div className="dash-body">
+          <MapView location={location} onSelect={runAnalysis} />
+          <SidePanel
+            location={location}
+            environment={environment}
+            analysis={analysis}
+            loading={loading}
+            stage={stage}
+            error={error}
+            onAnalyze={() => runAnalysis(location)}
+            onExport={handleExport}
+          />
+        </div>
       </div>
-
-      <SidePanel
-        location={location}
-        environment={environment}
-        analysis={analysis}
-        loading={loading}
-        stage={stage}
-        error={error}
-        onAnalyze={() => runAnalysis(location)}
-        onExport={handleExport}
-      />
-    </div>
+    </>
   );
 }
