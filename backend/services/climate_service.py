@@ -5,10 +5,10 @@ from backend.models.schemas import ClimateData
 
 
 def _fallback_climate(lat: float, lng: float) -> ClimateData:
-    base_temp = 25 - (lat - 26.5) * 2
+    base_temp = 25.0 - (lat - 26.5) * 2.0
     return ClimateData(
         avg_temp_max=round(base_temp, 1),
-        avg_temp_min=round(base_temp - 12, 1),
+        avg_temp_min=round(base_temp - 12.0, 1),
         annual_rainfall=1400.0,
         dry_months=4,
         source="deterministic-fallback",
@@ -16,31 +16,33 @@ def _fallback_climate(lat: float, lng: float) -> ClimateData:
 
 
 async def fetch_climate(lat: float, lng: float) -> ClimateData:
-    url = "https://api.open-meteo.com/v1/forecast"
-    params = {
-        "latitude": lat,
-        "longitude": lng,
-        "daily": [
-            "temperature_2m_max",
-            "temperature_2m_min",
-            "precipitation_sum",
-        ],
-        "timezone": "Asia/Kathmandu",
-        "forecast_days": 92,
-    }
     try:
         async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.get(url, params=params)
+            response = await client.get(
+                "https://api.open-meteo.com/v1/forecast",
+                params={
+                    "latitude": lat,
+                    "longitude": lng,
+                    "daily": [
+                        "temperature_2m_max",
+                        "temperature_2m_min",
+                        "precipitation_sum",
+                    ],
+                    "timezone": "Asia/Kathmandu",
+                    "forecast_days": 92,
+                },
+            )
             response.raise_for_status()
             data = response.json()
             daily = data.get("daily", {})
 
-            temps_max = daily.get("temperature_2m_max", [])
-            temps_min = daily.get("temperature_2m_min", [])
-            rainfall = daily.get("precipitation_sum", [])
+            temps_max = [t for t in daily.get("temperature_2m_max", []) if t is not None]
+            temps_min = [t for t in daily.get("temperature_2m_min", []) if t is not None]
+            rainfall = [r for r in daily.get("precipitation_sum", []) if r is not None]
 
             avg_max = round(sum(temps_max) / len(temps_max), 1) if temps_max else 25.0
             avg_min = round(sum(temps_min) / len(temps_min), 1) if temps_min else 13.0
+            # 92 days ≈ 1 season → multiply by 4 for annual estimate
             annual_rainfall = round(sum(rainfall) * 4, 1) if rainfall else 1400.0
             dry_months = sum(1 for r in rainfall if r < 20) // 3
 
