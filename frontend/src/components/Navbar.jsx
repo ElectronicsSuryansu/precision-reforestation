@@ -81,9 +81,6 @@ export default function Navbar() {
           >
             {theme === "dark" ? "☀ Light mode" : "☾ Dark mode"}
           </button>
-          <span className={isDark ? "rounded-full border border-forest-400/20 bg-forest-400/10 px-3 py-2 text-forest-200" : "rounded-full border border-forest-400/20 bg-forest-50 px-3 py-2 text-forest-800"}>
-            Live geospatial + Claude
-          </span>
         </div>
       </div>
     </header>

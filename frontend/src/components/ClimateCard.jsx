@@ -19,12 +19,12 @@ export default function ClimateCard({
       <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accentClasses}`} />
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">{title}</div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-emerald-950">{title}</div>
           <div className="mt-3 flex items-end gap-2">
             <div className="font-display text-4xl font-bold text-[var(--page-text)] leading-none">{value}</div>
-            {unit ? <div className="pb-1 text-sm font-medium text-slate-400">{unit}</div> : null}
+            {unit ? <div className="pb-1 text-sm font-medium text-emerald-950">{unit}</div> : null}
           </div>
-          {subtitle ? <div className="mt-3 text-sm leading-6 text-slate-400">{subtitle}</div> : null}
+          {subtitle ? <div className="mt-3 text-sm leading-6 text-emerald-950/85">{subtitle}</div> : null}
         </div>
         {icon ? (
           <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border bg-gradient-to-br ${accentClasses} shadow-[0_0_24px_rgba(45,212,191,0.14)]`}>
