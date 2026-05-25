@@ -32,6 +32,7 @@ import { useEffect, useState } from "react";
 import PageShell from "../components/PageShell.jsx";
 import { analyzePatch } from "../services/api.js";
 import { getStoredLocation } from "../services/location.js";
+import EnvironmentalAnalytics from "./Biodiversity.jsx";
 
 export function Species() {
   const [analysis, setAnalysis] = useState(null);
@@ -124,52 +125,12 @@ export function Insight() {
   );
 }
 
-// ===== BIODIVERSITY =====
-export function Biodiversity() {
-  const [analysis, setAnalysis] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const location = getStoredLocation();
-
-  useEffect(() => {
-    let mounted = true;
-    analyzePatch(location.lat, location.lng)
-      .then((r) => { if (mounted) setAnalysis(r.data); })
-      .catch((e) => { if (mounted) setError(e?.response?.data?.detail || e.message); })
-      .finally(() => { if (mounted) setLoading(false); });
-    return () => { mounted = false; };
-  }, [location.lat, location.lng]);
-
-  const score = analysis?.biodiversity_score ?? 0;
-  const summary = score >= 75 ? "High ecological recovery potential" : score >= 50 ? "Moderate biodiversity opportunity" : "Targeted restoration needed";
-
-  return (
-    <PageShell
-      title="Biodiversity"
-      subtitle="Species richness and ecological resilience score for the selected site."
-      loading={loading} error={error}
-      action={<span className="badge-green">{location.lat.toFixed(3)}, {location.lng.toFixed(3)}</span>}
-    >
-      <style>{cardStyles}</style>
-      <div className="gpage-grid-2">
-        <div className="gcard">
-          <div className="gcard-label">Biodiversity Score</div>
-          <div className="gcard-value">{score.toFixed(1)}</div>
-          <div className="gcard-unit">{summary}</div>
-          <div className="confidence-track" style={{ marginTop: 20 }}>
-            <div className="confidence-fill" style={{ width: `${score}%` }} />
-          </div>
-        </div>
-        <div className="gcard">
-          <div className="gcard-title">How It's Calculated</div>
-          <div className="gcard-text">
-            The backend combines live soil and elevation context with NDVI and slope estimates, then scores the site through Claude. Higher NDVI, stronger organic matter, and moderate slopes improve the score.
-          </div>
-        </div>
-      </div>
-    </PageShell>
-  );
+// ===== CLIMATE =====
+export function Climate() {
+  return <EnvironmentalAnalytics />;
 }
+
+export const Biodiversity = Climate;
 
 // ===== CARBON =====
 export function Carbon() {
