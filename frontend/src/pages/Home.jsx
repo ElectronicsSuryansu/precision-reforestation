@@ -641,7 +641,7 @@ export default function Home() {
           aria-label="Go to home"
           style={{ background: "none", border: "none" }}
         >
-          <img src="/logo.svg" alt="Precision Reforestation" className="nav-logo-image" />
+          <img src="/logo.png" alt="Precision Reforestation" className="nav-logo-image" />
           <span>PrecisionReforestation</span>
         </button>
         <div className="nav-actions">
