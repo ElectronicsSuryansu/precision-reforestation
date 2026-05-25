@@ -24,7 +24,7 @@ function MiniLine({ values, stroke = "#22d3ee" }) {
 
 function RainBars({ values }) {
   if (!values?.length) {
-    return <div className="h-20 rounded-[16px] border border-dashed border-white/10 bg-white/5" />;
+    return <div className="h-20 rounded-[16px] border border-dashed border-emerald-200 bg-emerald-50/60" />;
   }
 
   const bars = values.slice(-12);
@@ -50,7 +50,7 @@ function MoistureGauge({ value }) {
   return (
     <div className="relative flex h-32 w-32 items-center justify-center">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={radius} stroke="rgba(255,255,255,0.1)" strokeWidth={strokeWidth} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={radius} stroke="rgba(16, 185, 129, 0.12)" strokeWidth={strokeWidth} fill="none" />
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -70,7 +70,7 @@ function MoistureGauge({ value }) {
         </defs>
       </svg>
       <div className="absolute text-center">
-        <div className="font-display text-3xl font-bold text-white">{clamped.toFixed(1)}%</div>
+        <div className="font-display text-3xl font-bold text-emerald-950">{clamped.toFixed(1)}%</div>
       </div>
     </div>
   );
@@ -78,7 +78,7 @@ function MoistureGauge({ value }) {
 
 function TempLine({ values }) {
   if (!values?.length) {
-    return <div className="h-20 rounded-[16px] border border-dashed border-white/10 bg-white/5" />;
+    return <div className="h-20 rounded-[16px] border border-dashed border-emerald-200 bg-emerald-50/60" />;
   }
 
   const min = Math.min(...values);
@@ -125,7 +125,7 @@ export default function WeatherMetrics({ data, loading }) {
         subtitle="Total hourly precipitation over the forecast window."
         icon={<span className="text-2xl">☁</span>}
       >
-        <div className="mb-3 flex items-center justify-between text-xs text-slate-400">
+        <div className="mb-3 flex items-center justify-between text-xs text-emerald-950">
           <span>Cloudburst trend</span>
           <span>{data?.series?.rainfall?.length ?? 0} points</span>
         </div>
@@ -142,7 +142,7 @@ export default function WeatherMetrics({ data, loading }) {
       >
         <div className="flex items-center justify-between gap-4">
           <MoistureGauge value={data?.avgSoilMoisturePct ?? 0} />
-          <div className="flex-1 rounded-[16px] border border-white/10 bg-white/5 p-3 text-sm text-slate-300">
+          <div className="flex-1 rounded-[16px] border border-emerald-300 bg-emerald-100/80 p-3 text-sm text-emerald-950/90">
             Moisture above 25% generally supports better restoration establishment and lower surface stress.
           </div>
         </div>
@@ -156,7 +156,7 @@ export default function WeatherMetrics({ data, loading }) {
         subtitle="Mean forecast temperature across the selected time window."
         icon={<span className="text-2xl">☀</span>}
       >
-        <div className="mb-3 flex items-center justify-between text-xs text-slate-400">
+        <div className="mb-3 flex items-center justify-between text-xs text-emerald-950">
           <span>24-hour trend</span>
           <span>{data?.series?.temperature?.length ?? 0} points</span>
         </div>

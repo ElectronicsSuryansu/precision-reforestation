@@ -80,13 +80,13 @@ export default function Climate() {
 
   const action = (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-200">
+      <span className="rounded-full border border-emerald-500/20 bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-950">
         Open-Meteo live
       </span>
       <button
         type="button"
         onClick={handleRefresh}
-        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:-translate-y-[1px] hover:bg-white/10"
+        className="rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-950 transition hover:-translate-y-[1px] hover:bg-emerald-100"
       >
         Refresh
       </button>
@@ -104,30 +104,30 @@ export default function Climate() {
       <div className="space-y-5">
         <form onSubmit={handleSubmit} className="grid gap-3 rounded-[20px] border border-white/10 bg-[var(--page-surface)] p-4 shadow-[0_16px_48px_rgba(0,0,0,0.24)] md:grid-cols-[1fr_1fr_auto]" style={{ borderColor: "var(--page-border)" }}>
           <label className="block">
-            <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Latitude</span>
+            <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.28em] text-emerald-950">Latitude</span>
             <input
               type="number"
               step="any"
               value={latInput}
               onChange={(event) => setLatInput(event.target.value)}
-              className="w-full rounded-[16px] border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/60"
+              className="w-full rounded-[16px] border border-emerald-300 bg-white px-4 py-3 text-sm text-emerald-950 outline-none transition placeholder:text-emerald-800/50 focus:border-emerald-700/60"
               placeholder="27.7172"
             />
           </label>
           <label className="block">
-            <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Longitude</span>
+            <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.28em] text-emerald-950">Longitude</span>
             <input
               type="number"
               step="any"
               value={lngInput}
               onChange={(event) => setLngInput(event.target.value)}
-              className="w-full rounded-[16px] border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/60"
+              className="w-full rounded-[16px] border border-emerald-300 bg-white px-4 py-3 text-sm text-emerald-950 outline-none transition placeholder:text-emerald-800/50 focus:border-emerald-700/60"
               placeholder="85.3240"
             />
           </label>
           <button
             type="submit"
-            className="self-end rounded-[16px] bg-gradient-to-r from-cyan-400 to-emerald-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-[1px] hover:brightness-110"
+            className="self-end rounded-[16px] bg-gradient-to-r from-emerald-700 to-emerald-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-[1px] hover:brightness-110"
           >
             Analyze
           </button>
@@ -145,8 +145,8 @@ export default function Climate() {
 
         <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="rounded-[20px] border border-white/10 bg-[var(--page-surface)] p-5 shadow-[0_16px_48px_rgba(0,0,0,0.24)]" style={{ borderColor: "var(--page-border)" }}>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Data Processing</div>
-            <div className="mt-3 space-y-3 text-sm leading-7 text-slate-300">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-emerald-950">Data Processing</div>
+            <div className="mt-3 space-y-3 text-sm leading-7 text-emerald-950/90">
               <p>Average temperature = mean(hourly.temperature_2m)</p>
               <p>Average soil moisture = mean(hourly.soil_moisture_0_to_1cm) × 100</p>
               <p>Rainfall = sum(hourly.precipitation)</p>
@@ -154,11 +154,11 @@ export default function Climate() {
           </div>
 
           <div className="rounded-[20px] border border-white/10 bg-[var(--page-surface)] p-5 shadow-[0_16px_48px_rgba(0,0,0,0.24)]" style={{ borderColor: "var(--page-border)" }}>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Live Status</div>
-            <div className="mt-4 grid gap-3 text-sm text-slate-300">
-              <div className="rounded-[16px] bg-white/5 p-3">Selected location: {pendingLocation.lat.toFixed(4)}, {pendingLocation.lng.toFixed(4)}</div>
-              <div className="rounded-[16px] bg-white/5 p-3">Forecast window: 24-hour Open-Meteo hourly series</div>
-              <div className="rounded-[16px] bg-white/5 p-3">Update mode: manual analyze + auto-refresh on coordinate changes</div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-emerald-950">Live Status</div>
+            <div className="mt-4 grid gap-3 text-sm text-emerald-950/90">
+              <div className="rounded-[16px] border border-emerald-300 bg-emerald-100/80 p-3">Selected location: {pendingLocation.lat.toFixed(4)}, {pendingLocation.lng.toFixed(4)}</div>
+              <div className="rounded-[16px] border border-emerald-300 bg-emerald-100/80 p-3">Forecast window: 24-hour Open-Meteo hourly series</div>
+              <div className="rounded-[16px] border border-emerald-300 bg-emerald-100/80 p-3">Update mode: manual analyze + auto-refresh on coordinate changes</div>
             </div>
           </div>
         </div>
