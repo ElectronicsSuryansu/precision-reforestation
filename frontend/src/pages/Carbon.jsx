@@ -26,24 +26,23 @@ export default function Carbon() {
       subtitle="Estimate restoration-linked carbon sequestration from terrain, soil, and vegetation."
       loading={loading} error={error}
       action={
-        <span style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #86efac", borderRadius: 100, padding: "6px 14px", fontSize: "0.8rem", fontWeight: 600 }}>
+        <span style={{ background: "var(--page-surface-strong)", color: "var(--page-accent)", border: "1px solid var(--page-accent-soft)", borderRadius: 100, padding: "6px 14px", fontSize: "0.8rem", fontWeight: 600 }}>
           CO₂e {carbon.toFixed(2)} t/yr
         </span>
       }
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
         .carbon-grid { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
-        .ccard { background: white; border: 1px solid #dcfce7; border-radius: 24px; padding: 24px; }
-        .ccard-label { font-size: 0.7rem; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
-        .ccard-value { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-weight: 700; color: #052e16; line-height: 1; }
-        .ccard-unit { font-size: 0.875rem; color: #4b7a59; margin-top: 6px; }
-        .ccard-title { font-size: 1rem; font-weight: 600; color: #052e16; margin-bottom: 14px; }
-        .ccard-text { font-size: 0.875rem; color: #4b7a59; line-height: 1.7; }
+        .ccard { background: var(--page-surface-strong); border: 1px solid var(--page-border); border-radius: 24px; padding: 24px; box-shadow: 0 12px 40px var(--page-shadow); }
+        .ccard-label { font-size: 0.7rem; font-weight: 700; color: var(--page-accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+        .ccard-value { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-weight: 700; color: var(--page-text); line-height: 1; }
+        .ccard-unit { font-size: 0.875rem; color: var(--page-muted); margin-top: 6px; }
+        .ccard-title { font-size: 1rem; font-weight: 600; color: var(--page-text); margin-bottom: 14px; }
+        .ccard-text { font-size: 0.875rem; color: var(--page-muted); line-height: 1.7; }
         .cstat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-        .cstat { background: #f0fdf4; border-radius: 14px; padding: 14px; }
-        .cstat-label { font-size: 0.65rem; color: #16a34a; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-        .cstat-value { font-size: 1.2rem; font-weight: 600; color: #052e16; margin-top: 4px; }
+        .cstat { background: var(--page-surface); border-radius: 14px; padding: 14px; border: 1px solid var(--page-border); }
+        .cstat-label { font-size: 0.65rem; color: var(--page-accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+        .cstat-value { font-size: 1.2rem; font-weight: 600; color: var(--page-text); margin-top: 4px; }
         @media (max-width: 768px) { .carbon-grid { grid-template-columns: 1fr; } }
       `}</style>
       <div className="carbon-grid">

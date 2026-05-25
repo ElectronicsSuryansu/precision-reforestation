@@ -4,10 +4,12 @@ import MapView from "../components/MapView.jsx";
 import SidePanel from "../components/SidePanel.jsx";
 import { analyzePatch, getEnvironment } from "../services/api.js";
 import { getStoredLocation, saveStoredAnalysis, saveStoredLocation } from "../services/location.js";
+import { useTheme } from "../context/ThemeContext.jsx";
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export default function Dashboard() {
+  const { theme, toggleTheme } = useTheme();
   const [location, setLocation] = useState(() => getStoredLocation());
   const [latInput, setLatInput] = useState(() => String(getStoredLocation().lat));
   const [lngInput, setLngInput] = useState(() => String(getStoredLocation().lng));
@@ -69,19 +71,18 @@ export default function Dashboard() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap');
-        .dash-root { font-family: 'DM Sans', sans-serif; min-height: 100vh; background: #f0fdf4; }
+        .dash-root { font-family: 'DM Sans', sans-serif; min-height: 100vh; background: ${theme === "dark" ? "#020617" : "#f0fdf4"}; color: ${theme === "dark" ? "#e2e8f0" : "#052e16"}; }
         .dash-header {
-          background: white; border-bottom: 1px solid #dcfce7;
+          background: ${theme === "dark" ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.92)"}; border-bottom: 1px solid ${theme === "dark" ? "rgba(148,163,184,0.14)" : "#dcfce7"};
           padding: 20px 32px;
           display: flex; flex-direction: column; gap: 16px;
         }
         .dash-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
         .dash-right-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
         .dash-home-btn {
-          background: white;
-          color: #166534;
-          border: 1px solid #16a34a;
+          background: ${theme === "dark" ? "rgba(255,255,255,0.05)" : "white"};
+          color: ${theme === "dark" ? "#e2e8f0" : "#166534"};
+          border: 1px solid ${theme === "dark" ? "rgba(148,163,184,0.2)" : "#16a34a"};
           border-radius: 999px;
           padding: 10px 18px;
           font-size: 0.9rem;
@@ -89,59 +90,70 @@ export default function Dashboard() {
           cursor: pointer;
           transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
         }
-        .dash-home-btn:hover { background: #16a34a; color: white; transform: translateY(-1px); }
+        .dash-home-btn:hover { background: ${theme === "dark" ? "rgba(255,255,255,0.1)" : "#16a34a"}; color: ${theme === "dark" ? "#fff" : "white"}; transform: translateY(-1px); }
         .dash-badge {
           display: inline-flex; align-items: center; gap: 6px;
-          background: #dcfce7; border: 1px solid #86efac;
+          background: ${theme === "dark" ? "rgba(45,212,191,0.08)" : "#dcfce7"}; border: 1px solid ${theme === "dark" ? "rgba(45,212,191,0.18)" : "#86efac"};
           border-radius: 100px; padding: 4px 12px;
-          font-size: 0.7rem; font-weight: 700; color: #15803d;
+          font-size: 0.7rem; font-weight: 700; color: ${theme === "dark" ? "#5eead4" : "#15803d"};
           letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px;
         }
-        .dash-badge-dot { width: 5px; height: 5px; border-radius: 50%; background: #22c55e; animation: pulse2 2s infinite; }
+        .dash-badge-dot { width: 5px; height: 5px; border-radius: 50%; background: ${theme === "dark" ? "#2dd4bf" : "#22c55e"}; animation: pulse2 2s infinite; }
+        .dash-logo-btn {
+          display: flex; align-items: center; gap: 10px;
+          background: none; border: none; cursor: pointer;
+          padding: 0; margin-right: 16px;
+          transition: opacity 0.2s, transform 0.2s;
+        }
+        .dash-logo-btn:hover { opacity: 0.8; transform: scale(1.02); }
+        .dash-logo-img {
+          height: 52px; width: 52px; object-fit: contain;
+          filter: brightness(${theme === "dark" ? "1.1" : "0.85"}) drop-shadow(0 0 4px rgba(45, 212, 191, 0.2));
+        }
         .dash-title {
           font-family: 'Playfair Display', serif;
-          font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; color: #052e16;
+          font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; color: ${theme === "dark" ? "#e2e8f0" : "#052e16"};
         }
-        .dash-subtitle { font-size: 0.875rem; color: #4b7a59; margin-top: 4px; }
+        .dash-subtitle { font-size: 0.875rem; color: ${theme === "dark" ? "#94a3b8" : "#4b7a59"}; margin-top: 4px; }
         .coord-badge {
-          background: #f0fdf4; border: 1px solid #bbf7d0;
+          background: ${theme === "dark" ? "rgba(15,23,42,0.72)" : "#f0fdf4"}; border: 1px solid ${theme === "dark" ? "rgba(148,163,184,0.14)" : "#bbf7d0"};
           border-radius: 16px; padding: 12px 16px; text-align: right; flex-shrink: 0;
         }
         .coord-badge-label { display: block;
     font-size: 0.7rem;
     font-weight: 700;
-    color: #16a34a;
+    color: ${theme === "dark" ? "#5eead4" : "#16a34a"};
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 6px; }
-        .coord-badge-value { font-size: 1rem; font-weight: 600; color: #052e16; margin-top: 2px; }
+        .coord-badge-value { font-size: 1rem; font-weight: 600; color: ${theme === "dark" ? "#e2e8f0" : "#052e16"}; margin-top: 2px; }
         .dash-form {
           display: grid; gap: 12px;
           grid-template-columns: 1fr 1fr auto;
-          background: #f0fdf4; border: 1px solid #bbf7d0;
+          background: ${theme === "dark" ? "rgba(15,23,42,0.72)" : "#f0fdf4"}; border: 1px solid ${theme === "dark" ? "rgba(148,163,184,0.14)" : "#bbf7d0"};
           border-radius: 20px; padding: 16px;
         }
-        .form-field label { display: block; font-size: 0.7rem; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+        .form-field label { display: block; font-size: 0.7rem; font-weight: 700; color: ${theme === "dark" ? "#5eead4" : "#16a34a"}; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
         .form-input {
-          width: 100%; background: white; border: 1px solid #dcfce7;
-          border-radius: 12px; padding: 10px 14px; font-size: 0.9rem; color: #052e16;
+          width: 100%; background: ${theme === "dark" ? "rgba(2,6,23,0.75)" : "white"}; border: 1px solid ${theme === "dark" ? "rgba(148,163,184,0.16)" : "#dcfce7"};
+          border-radius: 12px; padding: 10px 14px; font-size: 0.9rem; color: ${theme === "dark" ? "#e2e8f0" : "#052e16"};
           outline: none; transition: border-color 0.2s;
           font-family: 'DM Sans', sans-serif;
         }
-        .form-input:focus { border-color: #16a34a; }
+        .form-input:focus { border-color: ${theme === "dark" ? "#2dd4bf" : "#16a34a"}; }
         .form-submit {
           align-self: end;
-          background: #16a34a; color: white; border: none;
+          background: ${theme === "dark" ? "#2dd4bf" : "#16a34a"}; color: ${theme === "dark" ? "#052e16" : "white"}; border: none;
           border-radius: 12px; padding: 11px 24px;
           font-size: 0.875rem; font-weight: 600;
           cursor: pointer; transition: background 0.2s, transform 0.15s;
           white-space: nowrap; font-family: 'DM Sans', sans-serif;
         }
-        .form-submit:hover { background: #15803d; transform: translateY(-1px); }
+        .form-submit:hover { background: ${theme === "dark" ? "#5eead4" : "#15803d"}; transform: translateY(-1px); }
         .dash-error {
-          background: #fef2f2; border: 1px solid #fecaca;
+          background: ${theme === "dark" ? "rgba(127,29,29,0.18)" : "#fef2f2"}; border: 1px solid ${theme === "dark" ? "rgba(248,113,113,0.32)" : "#fecaca"};
           border-radius: 12px; padding: 12px 16px;
-          font-size: 0.875rem; color: #dc2626;
+          font-size: 0.875rem; color: ${theme === "dark" ? "#fca5a5" : "#dc2626"};
         }
         .dash-body {
           display: grid; gap: 20px; padding: 20px 32px;
@@ -163,12 +175,20 @@ export default function Dashboard() {
       <div className="dash-root">
         <div className="dash-header">
           <div className="dash-title-row">
-            <div>
-              <div className="dash-badge"><div className="dash-badge-dot" /> Live Analysis</div>
-              <h1 className="dash-title">Restoration Intelligence Dashboard</h1>
-              <p className="dash-subtitle">Click the map or enter coordinates to analyze any Nepal site.</p>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "0" }}>
+              <button className="dash-logo-btn" onClick={() => navigate("/home")} aria-label="Go to home">
+                <img src="/logo.svg" alt="Precision Reforestation" className="dash-logo-img" />
+              </button>
+              <div>
+                <div className="dash-badge"><div className="dash-badge-dot" /> Live Analysis</div>
+                <h1 className="dash-title">Restoration Intelligence Dashboard</h1>
+                <p className="dash-subtitle">Click the map or enter coordinates to analyze any Nepal site.</p>
+              </div>
             </div>
             <div className="dash-right-actions">
+                <button className="dash-home-btn" type="button" onClick={toggleTheme}>
+                  {theme === "dark" ? "☀ Light" : "☾ Dark"}
+                </button>
               <button className="dash-home-btn" type="button" onClick={() => navigate("/home")}>Home</button>
               <div className="coord-badge">
                 <div className="coord-badge-label">Selected Point</div>

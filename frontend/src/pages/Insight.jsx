@@ -24,25 +24,25 @@ export default function Insight() {
       subtitle="Claude-generated restoration summary for the selected land patch."
       loading={loading} error={error}
       action={
-        <span style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #86efac", borderRadius: 100, padding: "6px 14px", fontSize: "0.8rem", fontWeight: 600 }}>
+        <span style={{ background: "var(--page-surface-strong)", color: "var(--page-accent)", border: "1px solid var(--page-accent-soft)", borderRadius: 100, padding: "6px 14px", fontSize: "0.8rem", fontWeight: 600 }}>
           AI Narrative
         </span>
       }
     >
       <style>{`
         .insight-grid { display: grid; gap: 16px; grid-template-columns: 1.15fr 0.85fr; }
-        .icard { background: white; border: 1px solid #dcfce7; border-radius: 24px; padding: 24px; }
-        .icard-label { font-size: 0.7rem; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
-        .icard-title { font-size: 1rem; font-weight: 600; color: #052e16; margin-bottom: 14px; }
-        .istat { background: #f0fdf4; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
-        .istat-label { font-size: 0.7rem; color: #16a34a; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-        .istat-value { font-size: 1.3rem; font-weight: 600; color: #052e16; margin-top: 2px; }
+        .icard { background: var(--page-surface-strong); border: 1px solid var(--page-border); border-radius: 24px; padding: 24px; box-shadow: 0 12px 40px var(--page-shadow); }
+        .icard-label { font-size: 0.7rem; font-weight: 700; color: var(--page-accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+        .icard-title { font-size: 1rem; font-weight: 600; color: var(--page-text); margin-bottom: 14px; }
+        .istat { background: var(--page-surface); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; border: 1px solid var(--page-border); }
+        .istat-label { font-size: 0.7rem; color: var(--page-accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+        .istat-value { font-size: 1.3rem; font-weight: 600; color: var(--page-text); margin-top: 2px; }
         @media (max-width: 768px) { .insight-grid { grid-template-columns: 1fr; } }
       `}</style>
       <div className="insight-grid">
         <div className="icard">
           <div className="icard-label">AI Insight</div>
-          <p style={{ fontSize: "1.1rem", lineHeight: 1.8, color: "#052e16" }}>
+          <p style={{ fontSize: "1.1rem", lineHeight: 1.8, color: "var(--page-text)" }}>
             {analysis?.insight ?? "No insight available yet."}
           </p>
         </div>

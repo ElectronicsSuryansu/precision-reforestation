@@ -9,10 +9,30 @@
     min-height: 100%;
   }
 
+  :root {
+    --app-bg: #020617;
+    --app-fg: #e2e8f0;
+    --panel-bg: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(2, 6, 23, 0.88));
+    --panel-border: rgba(255, 255, 255, 0.08);
+    --panel-surface: rgba(255, 255, 255, 0.05);
+    --panel-surface-strong: rgba(0, 0, 0, 0.2);
+    --map-bg: #081120;
+  }
+
+  :root[data-theme='light'] {
+    --app-bg: #f4fff7;
+    --app-fg: #052e16;
+    --panel-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(240, 253, 244, 0.96));
+    --panel-border: rgba(22, 163, 74, 0.14);
+    --panel-surface: rgba(255, 255, 255, 0.82);
+    --panel-surface-strong: rgba(240, 253, 244, 0.9);
+    --map-bg: #eefaf2;
+  }
+
   body {
     margin: 0;
-    background: #020617;
-    color: #e2e8f0;
+    background: var(--app-bg);
+    color: var(--app-fg);
     font-family: "Manrope", sans-serif;
     overflow-x: hidden;
   }
@@ -25,13 +45,14 @@
 
 @layer components {
   .glass-panel {
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(2, 6, 23, 0.88));
+    background: var(--panel-bg);
+    border-color: var(--panel-border);
     backdrop-filter: blur(24px);
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
   }
 
   .map-shell .leaflet-container {
-    background: #081120;
+    background: var(--map-bg);
     border-radius: 0 0 28px 28px;
   }
 

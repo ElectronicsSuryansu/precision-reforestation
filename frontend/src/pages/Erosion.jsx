@@ -27,23 +27,22 @@ export default function Erosion() {
       subtitle="Slope-driven erosion exposure for the selected Himalayan land patch."
       loading={loading} error={error}
       action={
-        <span style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #86efac", borderRadius: 100, padding: "6px 14px", fontSize: "0.8rem", fontWeight: 600 }}>
+        <span style={{ background: "var(--page-surface-strong)", color: "var(--page-accent)", border: "1px solid var(--page-accent-soft)", borderRadius: 100, padding: "6px 14px", fontSize: "0.8rem", fontWeight: 600 }}>
           Slope {slope.toFixed(1)}°
         </span>
       }
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
         .erosion-grid { display: grid; gap: 16px; grid-template-columns: 1fr 2fr; }
-        .ecard { background: white; border: 1px solid #dcfce7; border-radius: 24px; padding: 24px; }
-        .ecard-label { font-size: 0.7rem; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
-        .ecard-value { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 700; color: #052e16; line-height: 1; }
-        .ecard-title { font-size: 1rem; font-weight: 600; color: #052e16; margin-bottom: 10px; }
-        .ecard-text { font-size: 0.875rem; color: #4b7a59; line-height: 1.7; }
+        .ecard { background: var(--page-surface-strong); border: 1px solid var(--page-border); border-radius: 24px; padding: 24px; box-shadow: 0 12px 40px var(--page-shadow); }
+        .ecard-label { font-size: 0.7rem; font-weight: 700; color: var(--page-accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+        .ecard-value { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 700; color: var(--page-text); line-height: 1; }
+        .ecard-title { font-size: 1rem; font-weight: 600; color: var(--page-text); margin-bottom: 10px; }
+        .ecard-text { font-size: 0.875rem; color: var(--page-muted); line-height: 1.7; }
         .estat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
-        .estat { background: #f0fdf4; border-radius: 14px; padding: 14px; }
-        .estat-label { font-size: 0.65rem; color: #16a34a; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-        .estat-value { font-size: 1.2rem; font-weight: 600; color: #052e16; margin-top: 4px; }
+        .estat { background: var(--page-surface); border-radius: 14px; padding: 14px; border: 1px solid var(--page-border); }
+        .estat-label { font-size: 0.65rem; color: var(--page-accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+        .estat-value { font-size: 1.2rem; font-weight: 600; color: var(--page-text); margin-top: 4px; }
         @media (max-width: 768px) { .erosion-grid { grid-template-columns: 1fr; } .estat-row { grid-template-columns: 1fr 1fr; } }
       `}</style>
       <div className="erosion-grid">

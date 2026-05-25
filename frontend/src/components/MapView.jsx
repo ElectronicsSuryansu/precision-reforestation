@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { NEPAL_BOUNDS } from "../services/location.js";
+import { useTheme } from "../context/ThemeContext.jsx";
 
 function ClickHandler({ onSelect }) {
   useMapEvents({
@@ -31,16 +32,17 @@ const selectedIcon = new L.DivIcon({
 });
 
 export default function MapView({ location, onSelect }) {
+  const { theme } = useTheme();
   const center = useMemo(() => [28.2, 84.0], []);
 
   return (
     <div className="glass-panel h-full min-h-[560px] overflow-hidden rounded-[28px] border border-white/10">
       <div className="flex items-center justify-between border-b border-white/8 px-5 py-4">
         <div>
-          <div className="font-display text-lg font-bold text-white">Nepal Restoration Map</div>
-          <div className="text-xs text-slate-400">Click anywhere to analyze a location</div>
+          <div className={theme === "dark" ? "font-display text-lg font-bold text-white" : "font-display text-lg font-bold text-slate-900"}>Nepal Restoration Map</div>
+          <div className={theme === "dark" ? "text-xs text-slate-400" : "text-xs text-slate-600"}>Click anywhere to analyze a location</div>
         </div>
-        <div className="rounded-full border border-forest-400/20 bg-forest-400/10 px-3 py-1 text-xs text-forest-200">
+        <div className={theme === "dark" ? "rounded-full border border-forest-400/20 bg-forest-400/10 px-3 py-1 text-xs text-forest-200" : "rounded-full border border-forest-400/20 bg-forest-50 px-3 py-1 text-xs text-forest-800"}>
           {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
         </div>
       </div>

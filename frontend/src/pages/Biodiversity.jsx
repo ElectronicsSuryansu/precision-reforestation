@@ -27,21 +27,21 @@ export default function Biodiversity() {
       subtitle="Species richness and ecological resilience score for the selected site."
       loading={loading} error={error}
       action={
-        <span style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #86efac", borderRadius: 100, padding: "6px 14px", fontSize: "0.8rem", fontWeight: 600 }}>
+        <span style={{ background: "var(--page-surface-strong)", color: "var(--page-accent)", border: "1px solid var(--page-accent-soft)", borderRadius: 100, padding: "6px 14px", fontSize: "0.8rem", fontWeight: 600 }}>
           {location.lat.toFixed(3)}, {location.lng.toFixed(3)}
         </span>
       }
     >
       <style>{`
         .bio-grid { display: grid; gap: 16px; grid-template-columns: 1.1fr 0.9fr; }
-        .bcard { background: white; border: 1px solid #dcfce7; border-radius: 24px; padding: 24px; }
-        .bcard-label { font-size: 0.7rem; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
-        .bcard-value { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-weight: 700; color: #052e16; line-height: 1; }
-        .bcard-unit { font-size: 0.875rem; color: #4b7a59; margin-top: 6px; }
-        .bcard-title { font-size: 1rem; font-weight: 600; color: #052e16; margin-bottom: 10px; }
-        .bcard-text { font-size: 0.875rem; color: #4b7a59; line-height: 1.7; }
-        .b-track { height: 6px; background: #dcfce7; border-radius: 100px; margin-top: 20px; overflow: hidden; }
-        .b-fill { height: 100%; background: linear-gradient(90deg, #16a34a, #4ade80); border-radius: 100px; transition: width 0.8s ease; }
+        .bcard { background: var(--page-surface-strong); border: 1px solid var(--page-border); border-radius: 24px; padding: 24px; box-shadow: 0 12px 40px var(--page-shadow); }
+        .bcard-label { font-size: 0.7rem; font-weight: 700; color: var(--page-accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+        .bcard-value { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-weight: 700; color: var(--page-text); line-height: 1; }
+        .bcard-unit { font-size: 0.875rem; color: var(--page-muted); margin-top: 6px; }
+        .bcard-title { font-size: 1rem; font-weight: 600; color: var(--page-text); margin-bottom: 10px; }
+        .bcard-text { font-size: 0.875rem; color: var(--page-muted); line-height: 1.7; }
+        .b-track { height: 6px; background: var(--page-border); border-radius: 100px; margin-top: 20px; overflow: hidden; }
+        .b-fill { height: 100%; background: linear-gradient(90deg, var(--page-accent), var(--page-accent-soft)); border-radius: 100px; transition: width 0.8s ease; }
         @media (max-width: 768px) { .bio-grid { grid-template-columns: 1fr; } }
       `}</style>
       <div className="bio-grid">
