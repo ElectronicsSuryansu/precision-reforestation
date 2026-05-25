@@ -168,9 +168,13 @@ export default function Home() {
         }
         .nav-logo:hover { opacity: 0.8; transform: scale(1.02); }
         .nav-logo-image {
-          height: 44px; width: 44px; object-fit: contain;
+          height: 44px; width: 44px; display: block; align-self: center;
+          object-fit: contain;
+          border-radius: 8px;
+          background: transparent;
+          padding: 0;
           filter: brightness(var(--logo-brightness, 1)) drop-shadow(0 0 4px rgba(45, 212, 191, 0.2));
-          transition: filter 0.2s;
+          transition: filter 0.2s, transform 0.12s;
         }
         .home-root[data-theme='light'] .nav-logo-image {
           --logo-brightness: 0.85;
