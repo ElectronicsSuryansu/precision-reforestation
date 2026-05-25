@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "../pages/Dashboard.jsx";
 import Home from "../pages/Home.jsx";
-import Biodiversity from "../pages/Biodiversity.jsx";
+import Climate from "../pages/Biodiversity.jsx";
 import Erosion from "../pages/Erosion.jsx";
 import Carbon from "../pages/Carbon.jsx";
 import Species from "../pages/Species.jsx";
@@ -13,7 +13,8 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/" element={<Dashboard />} />
       <Route path="/home" element={<Home />} />
-      <Route path="/biodiversity" element={<Biodiversity />} />
+      <Route path="/climate" element={<Climate />} />
+      <Route path="/biodiversity" element={<Navigate to="/climate" replace />} />
       <Route path="/erosion" element={<Erosion />} />
       <Route path="/carbon" element={<Carbon />} />
       <Route path="/species" element={<Species />} />

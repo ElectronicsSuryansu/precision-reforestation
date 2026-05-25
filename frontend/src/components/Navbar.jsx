@@ -4,7 +4,7 @@ import { useTheme } from "../context/ThemeContext.jsx";
 const navItems = [
   { to: "/home", label: "Home" },
   { to: "/", label: "Dashboard" },
-  { to: "/biodiversity", label: "Biodiversity" },
+  { to: "/climate", label: "Climate" },
   { to: "/erosion", label: "Erosion" },
   { to: "/carbon", label: "Carbon" },
   { to: "/species", label: "Species" },
