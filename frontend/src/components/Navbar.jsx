@@ -10,6 +10,7 @@ const navItems = [
   { to: "/species", label: "Species" },
   { to: "/insight", label: "Insight" },
   { to: "/crops", label: "Crops" },
+  { to: "/tree-map-simulator", label: "Tree Map Simulator" },
 ];
 
 export default function Navbar() {
